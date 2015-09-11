@@ -1,13 +1,18 @@
 <div ng-controller="TraceSequenceController">
     <div class="row pad_top">
         <div class="col-md-12">
-            <button type="button" class="ice-button" ng-click="showUploadOptions=true">
+            <button type="button" class="ice-button" ng-click="showSangUploadOptions=true; showMySeqUploadOptions=false">
                 <i style="font-size: 14px" class="fa fa-upload blue"></i> Add File
+            </button>
+            <!-- new MiSeq button -->
+            <button type="button" class="ice-button" ng-click="showMySeqUploadOptions=true; showSangUploadOptions=false">
+                <i style="font-size: 14px" class="fa fa-upload dark-orange"></i> Add MiSeq File
             </button>
         </div>
     </div>
 
-    <div class="row pad_top font-90em" ng-if="showUploadOptions">
+    <!-- sanger popup -->
+    <div class="row pad_top font-90em" ng-if="showSangUploadOptions">
         <div class="col-md-12">
             <div class="alert alert-info" style="margin-bottom: 10px">
                 <i style="font-size: 18px" class="fa fa-info-circle pull-left"></i> Upload Fasta, GenBank, or ABI
@@ -26,6 +31,34 @@
                      ng-style="{ 'width': traceSequenceUploader.progress + '%' }"></div>
             </div>
         </div>
+    </div>
+
+    <!-- MySeq upload popup -->
+    <div class="row pad_top font-90em" ng-if="showMySeqUploadOptions">
+        <div class="col-md-12">
+            <div class="alert alert-info" style="margin-bottom: 10px">
+                <i style="font-size: 18px" class="fa fa-info-circle pull-left"></i> Upload MySeq output in igv
+                format (optionally in a zip file)
+            </div>
+
+            <div class="alert alert-danger" style="margin-bottom: 10px" ng-if="traceUploadError==true">
+                <i style="font-size: 18px" class="fa fa-info-circle pull-left"></i> Error processing file
+            </div>
+
+            <!--file upload-->
+            <input nv-file-select type="file" uploader="traceSequenceUploader"/>
+
+            <div style="height: 7px; background-color: #f9f9f9;">
+                <div class="progress-bar" role="progressbar"
+                     ng-style="{ 'width': traceSequenceUploader.progress + '%' }"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sanger uploads -->
+
+    <div class="row pad_top">
+        <h3 class="dark-orange">Sanger</h3>
     </div>
 
     <div class="row pad_top" ng-if="traceSequences.length===0">
@@ -47,7 +80,7 @@
                 </tr>
                 </thead>
                 <tbody>
-                <tr ng-repeat="traceSequence in traceSequences">
+                <tr ng-repeat="traceSequence in traceSequences | filter: { filename: '.fasta' }">
                     <td style="opacity:0.2; text-shadow:0 1px 0 #fff;" width="30px">
                         <b class="no_wrap">{{$index+1}}</b>
                     </td>
@@ -72,4 +105,57 @@
             <ice-sequence-checker entryId="{{entry.id}}"></ice-sequence-checker>
         </div>
     </div>
+
+    <!-- MiSeq uploads -->
+
+    <div class="row pad_top">
+        <h3 class="dark-orange">MiSeq</h3>
+    </div>
+
+    <div class="row pad_top" ng-if="traceSequences.length===0">
+        <div class="col-md-12">
+            <i class="text-muted">No trace sequences available</i>
+        </div>
+    </div>
+
+    <div class="row pad_top" ng-if="traceSequences.length">
+        <div class="col-md-12">
+            <table cellspacing="0" class="table table-condensed table-hover font-95em">
+                <thead>
+                <tr>
+                    <td></td>
+                    <td><b>Trace Sequence Files</b></td>
+                    <td><b>Quality</b></td>
+                    <td><b>Uploaded By</b></td>
+                    <td><b>On</b></td>
+                    <td>&nbsp;</td>
+                </tr>
+                </thead>
+                <tbody>
+                <tr ng-repeat="traceSequence in traceSequences | filter: { filename: '.ab1' }">
+                    <td style="opacity:0.2; text-shadow:0 1px 0 #fff;" width="30px">
+                        <b class="no_wrap">{{$index+1}}</b>
+                    </td>
+                    <td><a class="cursor_pointer"
+                           ng-click="downloadTraceFile(traceSequence)">{{traceSequence.filename}}</a>
+                    </td>
+                    <td><p>999</p></td>
+                    <td><a ng-href="profile/{{traceSequence.depositor.id}}">{{traceSequence.depositor.firstName}}
+                        {{traceSequence.depositor.lastName}}</a></td>
+                    <td>{{traceSequence.created | date:'MMM d, y, h:mm a'}}</td>
+                    <td style="font-size:14px">
+                        <i ng-click="deleteTraceSequenceFile(traceSequence.fileId)" ng-show="traceSequence.canEdit"
+                           class="fa fa-trash-o delete_icon"></i>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="row pad_top" ng-if="entry.hasSequence&&traceSequences.length">
+        <div class="col-md-12" style="height: 600px">
+            <ice-sequence-checker entryId="{{entry.id}}"></ice-sequence-checker>
+        </div>
+    </div>  
 </div>
