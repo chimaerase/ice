@@ -5,9 +5,9 @@
                 <i style="font-size: 14px" class="fa fa-upload blue"></i> Add File
             </button>
             <!-- new MiSeq button -->
-            <button type="button" class="ice-button" ng-click="showMySeqUploadOptions=true; showSangUploadOptions=false">
+<!--             <button type="button" class="ice-button" ng-click="showMySeqUploadOptions=true; showSangUploadOptions=false">
                 <i style="font-size: 14px" class="fa fa-upload dark-orange"></i> Add MiSeq File
-            </button>
+            </button> -->
         </div>
     </div>
 
@@ -15,7 +15,7 @@
     <div class="row pad_top font-90em" ng-if="showSangUploadOptions">
         <div class="col-md-12">
             <div class="alert alert-info" style="margin-bottom: 10px">
-                <i style="font-size: 18px" class="fa fa-info-circle pull-left"></i> Upload Fasta, GenBank, or ABI
+                <i style="font-size: 18px" class="fa fa-info-circle pull-left"></i> Upload Fasta, GenBank, IGV, or ABI
                 formats (optionally in a zip file)
             </div>
 
@@ -34,7 +34,7 @@
     </div>
 
     <!-- MySeq upload popup -->
-    <div class="row pad_top font-90em" ng-if="showMySeqUploadOptions">
+<!--     <div class="row pad_top font-90em" ng-if="showMySeqUploadOptions">
         <div class="col-md-12">
             <div class="alert alert-info" style="margin-bottom: 10px">
                 <i style="font-size: 18px" class="fa fa-info-circle pull-left"></i> Upload MySeq output in igv
@@ -43,17 +43,17 @@
 
             <div class="alert alert-danger" style="margin-bottom: 10px" ng-if="traceUploadError==true">
                 <i style="font-size: 18px" class="fa fa-info-circle pull-left"></i> Error processing file
-            </div>
+            </div> -->
 
             <!--file upload-->
-            <input nv-file-select type="file" uploader="traceSequenceUploader"/>
+<!--             <input nv-file-select type="file" uploader="traceSequenceUploader"/>
 
             <div style="height: 7px; background-color: #f9f9f9;">
                 <div class="progress-bar" role="progressbar"
                      ng-style="{ 'width': traceSequenceUploader.progress + '%' }"></div>
             </div>
         </div>
-    </div>
+    </div> -->
 
     <!-- Sanger uploads -->
 
@@ -61,13 +61,13 @@
         <h3 class="dark-orange">Sanger</h3>
     </div>
 
-    <div class="row pad_top" ng-if="traceSequences.length===0">
+    <div class="row pad_top" ng-if="(traceSequences | filter: {filename: '!.igv'}).length===0">
         <div class="col-md-12">
             <i class="text-muted">No trace sequences available</i>
         </div>
     </div>
 
-    <div class="row pad_top" ng-if="traceSequences.length">
+    <div class="row pad_top" ng-if="(traceSequences | filter: {filename: '!.igv'}).length > 0">
         <div class="col-md-12">
             <table cellspacing="0" class="table table-condensed table-hover font-95em">
                 <thead>
@@ -80,7 +80,7 @@
                 </tr>
                 </thead>
                 <tbody>
-                <tr ng-repeat="traceSequence in traceSequences | filter: { filename: '.fasta' }">
+                <tr ng-repeat="traceSequence in traceSequences | filter: { filename: '!.igv' }">
                     <td style="opacity:0.2; text-shadow:0 1px 0 #fff;" width="30px">
                         <b class="no_wrap">{{$index+1}}</b>
                     </td>
@@ -112,13 +112,13 @@
         <h3 class="dark-orange">MiSeq</h3>
     </div>
 
-    <div class="row pad_top" ng-if="traceSequences.length===0">
+    <div class="row pad_top" ng-if="(traceSequences | filter: {filename: '.igv'}).length===0">
         <div class="col-md-12">
             <i class="text-muted">No trace sequences available</i>
         </div>
     </div>
 
-    <div class="row pad_top" ng-if="traceSequences.length">
+    <div class="row pad_top" ng-if="(traceSequences | filter: {filename: '.igv'}).length > 0">
         <div class="col-md-12">
             <table cellspacing="0" class="table table-condensed table-hover font-95em">
                 <thead>
@@ -132,14 +132,19 @@
                 </tr>
                 </thead>
                 <tbody>
-                <tr ng-repeat="traceSequence in traceSequences | filter: { filename: '.ab1' }">
+                <tr ng-repeat="traceSequence in traceSequences | filter: { filename: '.igv' }">
                     <td style="opacity:0.2; text-shadow:0 1px 0 #fff;" width="30px">
                         <b class="no_wrap">{{$index+1}}</b>
                     </td>
                     <td><a class="cursor_pointer"
                            ng-click="downloadTraceFile(traceSequence)">{{traceSequence.filename}}</a>
                     </td>
-                    <td><p>999</p></td>
+                    <!-- td><p class="quality_score flawless" ng-if="traceSequence.quality > 1000">999</p></td>
+                    <td><p class="quality_score almost" ng-if="traceSequence.quality > 1000">999</p></td>
+                    <td><p class="quality_score incomplete" ng-if="traceSequence.quality > 1000">999</p></td>
+                    <td><p class="quality_score low_coverage" ng-if="traceSequence.quality > 1000">999</p></td>
+                    <td><p class="quality_score errors" ng-if="traceSequence.quality > 1000">999</p></td -->
+                    <td><p class="quality_score dips">{{traceSequence.quality_number}}</p></td>
                     <td><a ng-href="profile/{{traceSequence.depositor.id}}">{{traceSequence.depositor.firstName}}
                         {{traceSequence.depositor.lastName}}</a></td>
                     <td>{{traceSequence.created | date:'MMM d, y, h:mm a'}}</td>
