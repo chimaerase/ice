@@ -771,6 +771,17 @@ public class EntryController {
             Logger.info("Found the quality file.");
             // send file to parser
             // get string[] back
+            String fileContents = "";
+            try {
+                fileContents = IOUtils.toString(bytes);
+            } catch (Exception e) {
+                Logger.error("couldn't toString the quality file " + e);
+                return false;
+            }
+
+            String[] qualityArray = sequenceAnalysisController.getQuality(fileContents);
+            Logger.info(">>>> quality is " + qualityArray[0]);
+            Logger.info(">>>> score is " + qualityArray[1]);
             // assign string[] content to vars
             return true;
         }

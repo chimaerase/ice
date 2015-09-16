@@ -19,6 +19,7 @@ import org.jbei.ice.lib.parsers.bl2seq.Bl2SeqResult;
 import org.jbei.ice.lib.search.blast.BlastException;
 import org.jbei.ice.lib.search.blast.BlastPlus;
 import org.jbei.ice.lib.search.blast.ProgramTookTooLongException;
+import org.jbei.ice.lib.utils.FileUtils;
 import org.jbei.ice.lib.utils.Utils;
 import org.jbei.ice.lib.vo.DNASequence;
 
@@ -27,6 +28,8 @@ import java.io.InputStream;
 import java.nio.file.Paths;
 import java.util.Date;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * ABI to manipulate DNA sequence trace analysis
@@ -186,8 +189,19 @@ public class SequenceAnalysisController {
      * @param bytes bytes representation of the sequence information
      * @return Parsed Sequence as {@link DNASequence}.
      */
-    public String[] getQuality(String fileName) {
-        
+    public String[] getQuality(String qualityContents) {
+        String[] qualityArray = {"", ""};
+        Pattern qualityReg = Pattern.compile("call:\\s*\"([a-zA-Z]+).*score:\\s*([1-9]+)");
+        Matcher qualM = qualityReg.matcher(qualityContents);
+
+        if(qualM.find()) {
+            Logger.info(">>>>> find succeeded");
+            Logger.info(qualM.toString());
+            qualityArray[0] = qualM.group(1);
+            qualityArray[1] = qualM.group(2);
+        } 
+
+        return qualityArray;
     }
 
 
