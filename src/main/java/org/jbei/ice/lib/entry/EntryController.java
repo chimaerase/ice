@@ -724,7 +724,7 @@ public class EntryController {
                                     byteArrayOutputStream.toByteArray());
                             if (!parsed) {
                                 String errMsg = ("Could not parse \"" + zipEntry.getName()
-                                        + "\". Only Fasta, GenBank & ABI files are supported.");
+                                        + "\". Only Fasta, GenBank & ABI files are supported. This is the top block");
                                 Logger.error(errMsg);
                                 return false;
                             }
@@ -733,6 +733,7 @@ public class EntryController {
                         break;
                     }
                 }
+                // {{}} ADD PARSING FOR BAM FILES AND QUALITY SCORE
             } catch (IOException e) {
                 String errMsg = ("Could not parse zip file.");
                 Logger.error(errMsg);
@@ -743,7 +744,7 @@ public class EntryController {
                 boolean parsed = parseTraceSequence(userId, entry, uploadFileName, IOUtils.toByteArray(inputStream));
                 if (!parsed) {
                     String errMsg = ("Could not parse \"" + uploadFileName
-                            + "\". Only Fasta, GenBank & ABI files are supported.");
+                            + "\". Only Fasta, GenBank & ABI files are supported. This is the second block");
                     Logger.error(errMsg);
                     return false;
                 }
@@ -758,10 +759,23 @@ public class EntryController {
 
     // uploads trace sequence file and builds or rebuilds alignment
     private boolean parseTraceSequence(String userId, Entry entry, String fileName, byte[] bytes) {
+        // skip .bam file
+        if ( fileName.endsWith(".bam") ) {
+            Logger.info("Found a .bam file \"" + fileName 
+                    + "\", ignoring ...");
+            return true;
+        }
+
+        // deal with quality file
+        if ( fileName.equals("quality.json") ) {
+            Logger.info("Found the quality file.");
+            return true;
+        }
+
         DNASequence dnaSequence = sequenceAnalysisController.parse(bytes);
         if (dnaSequence == null || dnaSequence.getSequence() == null) {
             String errMsg = ("Could not parse \"" + fileName
-                    + "\". Only Fasta, GenBank & ABI files are supported.");
+                    + "\". Only Fasta, GenBank & ABI files are supported. This is the third block");
             Logger.error(errMsg);
             return false;
         }
