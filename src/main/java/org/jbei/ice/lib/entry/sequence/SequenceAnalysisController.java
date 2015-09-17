@@ -191,15 +191,24 @@ public class SequenceAnalysisController {
      */
     public String[] getQuality(String qualityContents) {
         String[] qualityArray = {"", ""};
-        Pattern qualityReg = Pattern.compile("call:\\s*\"([a-zA-Z]+).*score:\\s*([1-9]+)");
-        Matcher qualM = qualityReg.matcher(qualityContents);
+        // Pattern qualityReg = Pattern.compile("call:\\s*\"([a-zA-Z]+).*score:\\s*([1-9]+)");
+        // hopefully these can be collapsed into one regex but for now I'm splitting them 
+        // until I figure out what's going wrong.
+        Pattern scoreReg = Pattern.compile("score:\\s+([1-9]+)");
+        Pattern qualReg  = Pattern.compile("call:[^a-zA-Z]*([a-zA-Z\\s]+)\"");
+        Matcher scoreM = scoreReg.matcher(qualityContents);
+        Matcher qualM = qualReg.matcher(qualityContents);
 
         if(qualM.find()) {
-            Logger.info(">>>>> find succeeded");
-            Logger.info(qualM.toString());
+            // Logger.info(">>>>> find succeeded");
+            // Logger.info("foudn " + qualM.group(1));
+
             qualityArray[0] = qualM.group(1);
-            qualityArray[1] = qualM.group(2);
         } 
+        if(scoreM.find()) {
+            // Logger.info("found " + scoreM.group(1));
+            qualityArray[1] = scoreM.group(1);
+        }
 
         return qualityArray;
     }

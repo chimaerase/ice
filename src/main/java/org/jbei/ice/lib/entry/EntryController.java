@@ -733,7 +733,7 @@ public class EntryController {
                         break;
                     }
                 }
-                // {{}} ADD PARSING FOR BAM FILES AND QUALITY SCORE
+
             } catch (IOException e) {
                 String errMsg = ("Could not parse zip file.");
                 Logger.error(errMsg);
@@ -780,8 +780,8 @@ public class EntryController {
             }
 
             String[] qualityArray = sequenceAnalysisController.getQuality(fileContents);
-            Logger.info(">>>> quality is " + qualityArray[0]);
-            Logger.info(">>>> score is " + qualityArray[1]);
+            // Logger.info(">>>> quality is " + qualityArray[0]);
+            // Logger.info(">>>> score is " + qualityArray[1]);
             // assign string[] content to vars
             return true;
         }
