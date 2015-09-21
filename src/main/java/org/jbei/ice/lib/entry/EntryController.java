@@ -706,7 +706,13 @@ public class EntryController {
             return false;
         }
 
-        if (uploadFileName.toLowerCase().endsWith(".zip")) {
+        // {{}} split miseqs out higher
+
+        if (uploadFileName.toLowerCase().endsWith(".miseq.zip") {
+            
+        }
+
+        else if (uploadFileName.toLowerCase().endsWith(".zip")) {
             try (ZipInputStream zis = new ZipInputStream(inputStream)) {
                 ZipEntry zipEntry;
                 while (true) {

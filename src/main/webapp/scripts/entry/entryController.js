@@ -131,8 +131,8 @@ angular.module('ice.entry.controller', [])
         var entry = Entry(sid);
         $scope.traceUploadError = undefined;
         // store filter to split on MiSeq files
-        $scope.miSeqFilter = ".myseq.zip";
-        $scope.notMiSeqFilter = "filter: { filename: '!.myseq.zip' }";
+        // $scope.miSeqFilter = ".myseq.zip";
+        // $scope.notMiSeqFilter = "filter: { filename: '!.myseq.zip' }";
 
         entry.traceSequences({
             partId: entryId
