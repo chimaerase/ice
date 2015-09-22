@@ -43,6 +43,7 @@ public class TraceSequence implements IDataModel {
     @Type(type = "org.hibernate.type.TextType")
     private String sequence;
 
+    // new miseq columns
     @Column(name="call", nullable = true)
     private String call;
 
@@ -73,7 +74,7 @@ public class TraceSequence implements IDataModel {
 
     // overloading to add miseq
     public TraceSequence(Entry entry, String fileId, String filename, String depositor,
-            String call, String class, String sequence, Date creationTime) {
+            String call, String score, String sequence, Date creationTime) {
         super();
 
         this.entry = entry;
@@ -142,11 +143,12 @@ public class TraceSequence implements IDataModel {
         this.traceSequenceAlignment = traceSequenceAlignment;
     }
 
+    // new miseq getters and setters
     public String getCall() {
         return call;
     }
 
-    public String setCall(String call) {
+    public void setCall(String call) {
         this.call = call;
     }
 
@@ -154,7 +156,7 @@ public class TraceSequence implements IDataModel {
         return sequence;
     }
 
-    public String setScore(String score) {
+    public void setScore(String score) {
         this.score = score;
     }
 

@@ -706,10 +706,41 @@ public class EntryController {
             return false;
         }
 
-        // {{}} split miseqs out higher
+        // split miseqs out higher
 
-        if (uploadFileName.toLowerCase().endsWith(".miseq.zip") {
-            
+        if (uploadFileName.toLowerCase().endsWith(".miseq.zip")) {
+            try (ZipInputStream zis = new ZipInputStream(inputStream)) {
+                ZipEntry zipEntry;
+                while (true) {
+                    zipEntry = zis.getNextEntry();
+
+                    if (zipEntry != null) {
+                        if (!zipEntry.isDirectory() && !zipEntry.getName().startsWith("__MACOSX")) {
+                            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+                            int c;
+                            while ((c = zis.read()) != -1) {
+                                byteArrayOutputStream.write(c);
+                            }
+
+                            boolean parsed = parseTraceSequence(userId, entry, zipEntry.getName(),
+                                    byteArrayOutputStream.toByteArray());
+                            if (!parsed) {
+                                String errMsg = ("Could not parse \"" + zipEntry.getName()
+                                        + "\". Check that it is a valid MiSeq repository.");
+                                Logger.error(errMsg);
+                                return false;
+                            }
+                        }
+                    } else {
+                         break;
+                    }
+                }
+
+            } catch (IOException e) {
+                String errMsg = ("Could not parse miseq.zip file.");
+                Logger.error(errMsg);
+                return false;
+            }            
         }
 
         else if (uploadFileName.toLowerCase().endsWith(".zip")) {
@@ -763,8 +794,7 @@ public class EntryController {
         return true;
     }
 
-    // uploads trace sequence file and builds or rebuilds alignment
-    private boolean parseTraceSequence(String userId, Entry entry, String fileName, byte[] bytes) {
+    private Boolean parseMiSeqSequence() {
         // skip .bam file
         if ( fileName.endsWith(".bam") ) {
             Logger.info("Found a .bam file \"" + fileName 
@@ -772,6 +802,7 @@ public class EntryController {
             return true;
         }
 
+        String[] qualityArray = {"", ""};
         // deal with quality file
         if ( fileName.equals("quality.json") ) {
             Logger.info("Found the quality file.");
@@ -785,9 +816,9 @@ public class EntryController {
                 return false;
             }
 
-            String[] qualityArray = sequenceAnalysisController.getQuality(fileContents);
-            // Logger.info(">>>> quality is " + qualityArray[0]);
-            // Logger.info(">>>> score is " + qualityArray[1]);
+            qualityArray = sequenceAnalysisController.getQuality(fileContents);
+            Logger.info(">>>> quality is " + qualityArray[0]);
+            Logger.info(">>>> score is " + qualityArray[1]);
             // assign string[] content to vars
             return true;
         }
@@ -801,7 +832,33 @@ public class EntryController {
         }
 
         TraceSequence traceSequence = sequenceAnalysisController.uploadTraceSequence(
-                entry, fileName, userId, dnaSequence.getSequence().toLowerCase(), new ByteArrayInputStream(bytes));
+                entry, fileName, userId, dnaSequence.getSequence().toLowerCase(), qualityArray[0], 
+                    qualityArray[1], new ByteArrayInputStream(bytes));
+
+        if (traceSequence == null)
+            return false;
+
+        Sequence sequence = DAOFactory.getSequenceDAO().getByEntry(entry);
+        if (sequence == null)
+            return true;
+        sequenceAnalysisController.buildOrRebuildAlignment(traceSequence, sequence);
+        return true;
+    }
+
+    // uploads trace sequence file and builds or rebuilds alignment
+    private boolean parseTraceSequence(String userId, Entry entry, String fileName, byte[] bytes) {
+
+        DNASequence dnaSequence = sequenceAnalysisController.parse(bytes);
+        if (dnaSequence == null || dnaSequence.getSequence() == null) {
+            String errMsg = ("Could not parse \"" + fileName
+                    + "\". Only Fasta, GenBank & ABI files are supported.");
+            Logger.error(errMsg);
+            return false;
+        }
+
+        TraceSequence traceSequence = sequenceAnalysisController.uploadTraceSequence(
+                entry, fileName, userId, dnaSequence.getSequence().toLowerCase(), qualityArray[0], 
+                    qualityArray[1], new ByteArrayInputStream(bytes));
 
         if (traceSequence == null)
             return false;

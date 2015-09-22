@@ -93,8 +93,11 @@ public class SequenceAnalysisController {
      * @param inputStream input stream for uploaded file
      * @return Saved traceSequence
      */
+        // {{}}
     public TraceSequence uploadTraceSequence(Entry entry, String filename, String depositor,
-                                             String sequence, InputStream inputStream) {
+                                             String sequence, String call, String score, InputStream inputStream) {
+        Logger.info("uploaded " + call);
+        Logger.info("uploaded " + score);
         return importTraceSequence(entry, filename, depositor, sequence, Utils.generateUUID(), new Date(), inputStream);
     }
 
