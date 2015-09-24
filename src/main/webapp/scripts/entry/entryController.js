@@ -130,7 +130,7 @@ angular.module('ice.entry.controller', [])
         var sid = $cookieStore.get("sessionId");
         var entry = Entry(sid);
         // angular filter; technically a constant
-        var IS_MISEQ = "";
+        // var MISEQS = "traceSequences | filter: { filename: '.miseq.zip' }";
         $scope.traceUploadError = undefined;
 
         entry.traceSequences({
@@ -138,7 +138,6 @@ angular.module('ice.entry.controller', [])
         }, function (result) {
             $scope.traceSequences = result;
         });
-
 
         $scope.traceSequenceUploader = new FileUploader({
             scope: $scope, // to automatically update the html. Default: $rootScope

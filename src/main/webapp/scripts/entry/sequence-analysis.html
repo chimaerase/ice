@@ -72,25 +72,20 @@
         </div>
     </div>
 
-    <div class="row pad_top" ng-if="entry.hasSequence&&traceSequences.length">
-        <div class="col-md-12" style="height: 600px">
-            <ice-sequence-checker entryId="{{entry.id}}"></ice-sequence-checker>
-        </div>
-    </div>
-
     <!-- MiSeq uploads -->
 
     <div class="row pad_top">
         <h3 class="dark-orange">MiSeq</h3>
+        <p style="display: none;">{{MISEQS = (traceSequences | filter: { filename: '.miseq.zip' })}}</p>
     </div>
 
-    <div class="row pad_top" ng-if="misequences.length===0">
+    <div class="row pad_top" ng-if="MISEQS.length===0">
         <div class="col-md-12">
             <i class="text-muted">No MiSeq entries available</i>
         </div>
     </div>
 
-    <div class="row pad_top" ng-if="misequences.length > 0">
+    <div class="row pad_top" ng-if="MISEQS.length > 0">
         <div class="col-md-12">
             <table cellspacing="0" class="table table-condensed table-hover font-95em">
                 <thead>
@@ -104,14 +99,14 @@
                 </tr>
                 </thead>
                 <tbody>
-                <tr ng-repeat="misequence in misequences">
+                <tr ng-repeat="misequence in MISEQS">
                     <td style="opacity:0.2; text-shadow:0 1px 0 #fff;" width="30px">
                         <b class="no_wrap">{{$index+1}}</b>
                     </td>
                     <td><a class="cursor_pointer"
                            ng-click="downloadTraceFile(misequence)">{{misequence.filename}}</a>
                     </td>
-                    <td><p class="quality_score {{misequence.call}}">{{misequence.score}}</p></td>
+                    <!-- <td><p class="quality_score {{misequence.call}}">{{misequence.score}}</p></td> -->
                     <td><a ng-href="profile/{{misequence.depositor.id}}">{{misequence.depositor.firstName}}
                         {{misequence.depositor.lastName}}</a></td>
                     <td>{{misequence.created | date:'MMM d, y, h:mm a'}}</td>
@@ -129,5 +124,5 @@
         <div class="col-md-12" style="height: 600px">
             <ice-sequence-checker entryId="{{entry.id}}"></ice-sequence-checker>
         </div>
-    </div>  
+    </div>
 </div>

@@ -708,73 +708,73 @@ public class EntryController {
 
         // split miseqs out higher
 
-        if (uploadFileName.toLowerCase().endsWith(".miseq.zip")) {
-            // then we call a parsing function that reads each file and uploads the files
-            try (ZipInputStream zis = new ZipInputStream(inputStream)) {
-                ZipEntry zipEntry;
+        // if (uploadFileName.toLowerCase().endsWith(".miseq.zip")) {
+        //     // then we call a parsing function that reads each file and uploads the files
+        //     try (ZipInputStream zis = new ZipInputStream(inputStream)) {
+        //         ZipEntry zipEntry;
 
-                String fileName;
-                Byte[] bytes;
-                String call;
-                String score;
+        //         String fileName;
+        //         Byte[] bytes;
+        //         // String call;
+        //         // String score;
 
-                while (true) {
-                    zipEntry = zis.getNextEntry();
+        //         while (true) {
+        //             zipEntry = zis.getNextEntry();
 
-                    if (zipEntry != null) {
-                        if (!zipEntry.isDirectory() && !zipEntry.getName().startsWith("__MACOSX")) {
-                            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-                            int c;
-                            while ((c = zis.read()) != -1) {
-                                byteArrayOutputStream.write(c);
-                            }
+        //             if (zipEntry != null) {
+        //                 if (!zipEntry.isDirectory() && !zipEntry.getName().startsWith("__MACOSX")) {
+        //                     ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        //                     int c;
+        //                     while ((c = zis.read()) != -1) {
+        //                         byteArrayOutputStream.write(c);
+        //                     }
 
-                            // this isn't super modular   :/
+        //                     // this isn't super modular   :/
 
-                            fileName = zipEntry.getName();
-                            bytes = byteArrayOutputStream.toByteArray();
+        //                     fileName = zipEntry.getName();
+        //                     bytes = byteArrayOutputStream.toByteArray();
 
-                            // we need to return something other than a Boolean
-                            // skip .bam file
-                            if ( fileName.endsWith(".bam") ) {
-                                Logger.info("Found a .bam file \"" + fileName 
-                                        + "\", ignoring ...");
-                                // return true;
-                            }
+        //                     // we need to return something other than a Boolean
+        //                     // skip .bam file
+        //                     if ( fileName.endsWith(".bam") ) {
+        //                         Logger.info("Found a .bam file \"" + fileName 
+        //                                 + "\", ignoring ...");
+        //                         // return true;
+        //                     }
 
-                            // deal with quality file
-                            if ( fileName.equals("quality.json") ) {
-                                Logger.info("Found the quality file.");
-                                // send file to parser
-                                // get string[] back
-                                String fileContents = "";
-                                try {
-                                    fileContents = IOUtils.toString(bytes);
-                                } catch (Exception e) {
-                                    Logger.error("couldn't toString the quality file " + e);
-                                    // return false;
-                                }
+        //                     // deal with quality file
+        //                     if ( fileName.equals("quality.json") ) {
+        //                         Logger.info("Found the quality file.");
+        //                         // send file to parser
+        //                         // get string[] back
+        //                         String fileContents = "";
+        //                         try {
+        //                             fileContents = IOUtils.toString(bytes);
+        //                         } catch (Exception e) {
+        //                             Logger.error("couldn't toString the quality file " + e);
+        //                             // return false;
+        //                         }
 
-                                // getQuality should at least return empty strings but we may need to check for null anyway
-                                // getQuality should probably be moved since we're not technically processing a sequence here
-                                String[] qualityArray = sequenceAnalysisController.getQuality(fileContents);
-                                call = qualityArray[0];
-                                score = qualityArray[1];
-                            }
-                        }
-                    } else {
-                        break;
-                    }
-                }
+        //                         // getQuality should at least return empty strings but we may need to check for null anyway
+        //                         // getQuality should probably be moved since we're not technically processing a sequence here
+        //                         String[] qualityArray = sequenceAnalysisController.getQuality(fileContents);
+        //                         call = qualityArray[0];
+        //                         score = qualityArray[1];
+        //                     }
+        //                 }
+        //             } else {
+        //                 break;
+        //             }
+        //         }
 
-            } catch (IOException e) {
-                String errMsg = ("Could not parse miseq.zip file.");
-                Logger.error(errMsg);
-                return false;
-            }            
-        }
+        //     } catch (IOException e) {
+        //         String errMsg = ("Could not parse miseq.zip file.");
+        //         Logger.error(errMsg);
+        //         return false;
+        //     }            
+        // }
 
-        else if (uploadFileName.toLowerCase().endsWith(".zip")) {
+        if (uploadFileName.toLowerCase().endsWith(".zip")) {
             try (ZipInputStream zis = new ZipInputStream(inputStream)) {
                 ZipEntry zipEntry;
                 while (true) {
