@@ -759,21 +759,21 @@ public class EntryController {
 
     // uploads trace sequence file and builds or rebuilds alignment
     private boolean parseTraceSequence(String userId, Entry entry, String fileName, byte[] bytes) {
-        // skip .bam file
-        if ( fileName.endsWith(".bam") ) {
-            Logger.info("Found a .bam file \"" + fileName 
-                    + "\", ignoring ...");
-            return true;
-        }
+        // // skip .bam file
+        // if ( fileName.endsWith(".bam") ) {
+        //     Logger.info("Found a .bam file \"" + fileName 
+        //             + "\", ignoring ...");
+        //     return true;
+        // }
 
-        // deal with quality file
-        if ( fileName.equals("quality.json") ) {
-            Logger.info("Found the quality file.");
-            // send file to parser
-            // get string[] back
-            // assign string[] content to vars
-            return true;
-        }
+        // // deal with quality file
+        // if ( fileName.equals("quality.json") ) {
+        //     Logger.info("Found the quality file.");
+        //     // send file to parser
+        //     // get string[] back
+        //     // assign string[] content to vars
+        //     return true;
+        // }
 
         DNASequence dnaSequence = sequenceAnalysisController.parse(bytes);
         if (dnaSequence == null || dnaSequence.getSequence() == null) {

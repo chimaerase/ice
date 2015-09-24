@@ -180,16 +180,6 @@ public class SequenceAnalysisController {
         return dnaSequence;
     }
 
-    /**
-     * Parses the quality json file of a MiSeq file and returns the two parameters.
-     *
-     * @param bytes bytes representation of the sequence information
-     * @return Parsed Sequence as {@link DNASequence}.
-     */
-    public String[] getQuality(String fileName) {
-        
-    }
-
 
     /**
      * Retrieve the {@link File} associated with the given {@link TraceSequence}.
