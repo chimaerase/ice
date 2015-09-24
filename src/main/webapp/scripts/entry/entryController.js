@@ -129,10 +129,9 @@ angular.module('ice.entry.controller', [])
         var entryId = $stateParams.id;
         var sid = $cookieStore.get("sessionId");
         var entry = Entry(sid);
+        // angular filter; technically a constant
+        var IS_MISEQ = "";
         $scope.traceUploadError = undefined;
-        // store filter to split on MiSeq files
-        // $scope.miSeqFilter = ".myseq.zip";
-        // $scope.notMiSeqFilter = "filter: { filename: '!.myseq.zip' }";
 
         entry.traceSequences({
             partId: entryId
