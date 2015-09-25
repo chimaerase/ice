@@ -1240,9 +1240,9 @@ th:hover i.sortable {
     font-size: 16px
 }
 
-.quality_score {
+.quality_desc {
     background-color: white; /* background color will depend on quality value */
-    padding: 3px 5px;
+    padding: 3px 10px;
     margin-right: 10px;
     border-radius: 3px;
     border: 1px solid #666;
@@ -1251,33 +1251,33 @@ th:hover i.sortable {
     text-align: center;
 }
 
-.quality_score.flawless {
+.quality_desc.flawless {
     background-color: darkgreen;
 }
 
-.quality_score.almost {
+.quality_desc.almost {
     background-color: green;
 }
 
-.quality_score.incomplete {
+.quality_desc.incomplete {
     background-color: tan;
     border-color: brown;
     color: brown;
 }
 
-.quality_score.low_coverage {
+.quality_desc.low_coverage {
     background-color: lightgray;
     color: brown;
     border-color: brown;
 }
 
-.quality_score.errors {
+.quality_desc.errors {
     background-color: pink;
     border-color: red;
     color: red;
 }
 
-.quality_score.dips {
+.quality_desc.dips {
     background-color: lightblue;
     border-color: teal;
     color: teal;

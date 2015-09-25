@@ -64,3 +64,15 @@ iceFilters.filter('fileTruncate', function () {
     };
 });
 
+iceFilters.filter('onlyDigits', function() {
+    return function (comment) {
+        return comment.replace(/[^\d]/g, '');
+    }; 
+});
+
+iceFilters.filter('onlyAlpha', function() {
+    return function (comment) {
+        return comment.replace(/[^a-zA-Z\s]/g, '');
+    };
+});
+
