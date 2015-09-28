@@ -1,7 +1,7 @@
 package org.jbei.ice.lib.entry;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jbei.ice.ApplicationController;
 import org.jbei.ice.lib.access.PermissionsController;
 import org.jbei.ice.lib.account.AccountController;
@@ -113,16 +113,20 @@ public class EntryController {
 
     public long getNumberOfEntriesSharedWithUser(String userId) {
         Account account = DAOFactory.getAccountDAO().getByEmail(userId);
-        return dao.sharedEntryCount(account, account.getGroups());
+        GroupController groupController = new GroupController();
+        Group publicGroup = groupController.createOrRetrievePublicGroup();
+        Set<Group> accountGroups = account.getGroups();
+        accountGroups.remove(publicGroup);
+        return dao.sharedEntryCount(account, accountGroups);
     }
 
     public List<PartData> getEntriesSharedWithUser(String userId, ColumnField field, boolean asc, int start,
                                                    int limit) {
         Account account = DAOFactory.getAccountDAO().getByEmail(userId);
-        Set<Group> accountGroups = new HashSet<>(account.getGroups());
-        GroupController controller = new GroupController();
-        Group everybodyGroup = controller.createOrRetrievePublicGroup();
-        accountGroups.add(everybodyGroup);
+        GroupController groupController = new GroupController();
+        Group publicGroup = groupController.createOrRetrievePublicGroup();
+        Set<Group> accountGroups = account.getGroups();
+        accountGroups.remove(publicGroup);
         List<Entry> entries = dao.sharedWithUserEntries(account, accountGroups, field, asc, start, limit);
 
         ArrayList<PartData> data = new ArrayList<>();
@@ -518,17 +522,6 @@ public class EntryController {
         }
 
         return true;
-    }
-
-    public boolean removeLink(String userId, long partId, long linkedPart) {
-        Entry entry = dao.get(partId);
-        if (entry == null)
-            return false;
-
-        authorization.expectWrite(userId, entry);
-        Entry linkedEntry = dao.get(linkedPart);
-
-        return entry.getLinkedEntries().remove(linkedEntry) && dao.update(entry) != null;
     }
 
     protected Entry getEntry(String id) {

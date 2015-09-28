@@ -5,12 +5,14 @@ import org.jbei.ice.lib.TestEntryCreator;
 import org.jbei.ice.lib.account.model.Account;
 import org.jbei.ice.lib.dao.DAOFactory;
 import org.jbei.ice.lib.dao.hibernate.HibernateUtil;
+import org.jbei.ice.lib.entry.model.Plasmid;
 import org.jbei.ice.lib.entry.model.Strain;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
@@ -42,7 +44,7 @@ public class CustomFieldsTest {
         Strain strain = TestEntryCreator.createTestStrain(account);
         Assert.assertNotNull(strain);
         CustomField field = new CustomField(0, strain.getId(), "foo", "bar");
-        long id = fields.createField(userId, strain.getId(), field);
+        long id = fields.createField(userId, strain.getId(), field).getId();
         strain = (Strain) DAOFactory.getEntryDAO().get(strain.getId());
         Assert.assertNotNull(strain);
         Assert.assertTrue(strain.getParameters().size() == 1);
@@ -60,7 +62,7 @@ public class CustomFieldsTest {
         Strain strain = TestEntryCreator.createTestStrain(account);
         Assert.assertNotNull(strain);
         CustomField field = new CustomField(0, strain.getId(), "foo1", "bar1");
-        long id = fields.createField(userId, strain.getId(), field);
+        long id = fields.createField(userId, strain.getId(), field).getId();
         CustomField created = fields.getField(userId, id);
         Assert.assertEquals(created.getName(), field.getName());
         Assert.assertEquals(created.getValue(), field.getValue());
@@ -75,7 +77,7 @@ public class CustomFieldsTest {
         Strain strain = TestEntryCreator.createTestStrain(account);
         Assert.assertNotNull(strain);
         CustomField field = new CustomField(0, strain.getId(), "Afoo2", "Bbar2");
-        long id = fields.createField(userId, strain.getId(), field);
+        long id = fields.createField(userId, strain.getId(), field).getId();
 
         // update
         field.setId(id);
@@ -109,8 +111,8 @@ public class CustomFieldsTest {
         HashSet<Long> ids = new HashSet<>();
 
         for (int i = 1; i <= 10; i += 1) {
-            CustomField field = new CustomField(0, strain.getId(), "name" + i, "value" + i);
-            long id = fields.createField(userId, strain.getId(), field);
+            CustomField field = new CustomField(strain.getId(), "name" + i, "value" + i);
+            long id = fields.createField(userId, strain.getId(), field).getId();
             ids.add(id);
         }
 
@@ -130,8 +132,8 @@ public class CustomFieldsTest {
         final String userId = account.getEmail();
         Strain strain = TestEntryCreator.createTestStrain(account);
         Assert.assertNotNull(strain);
-        CustomField field = new CustomField(0, strain.getId(), "foo3", "bar3");
-        long id = fields.createField(userId, strain.getId(), field);
+        CustomField field = new CustomField(strain.getId(), "foo3", "bar3");
+        long id = fields.createField(userId, strain.getId(), field).getId();
 
         // verify custom field creation
         strain = (Strain) DAOFactory.getEntryDAO().get(strain.getId());
@@ -150,5 +152,54 @@ public class CustomFieldsTest {
         strain = (Strain) DAOFactory.getEntryDAO().get(strain.getId());
         Assert.assertNotNull(strain);
         Assert.assertTrue(strain.getParameters().isEmpty());
+    }
+
+    @Test
+    public void testGetPartsByFields() throws Exception {
+        // create part
+        Account account = AccountCreator.createTestAccount("testGetPartsByFields", false);
+        final String userId = account.getEmail();
+        Strain strain = TestEntryCreator.createTestStrain(account);
+        Assert.assertNotNull(strain);
+
+        // create fields for strain
+        long strainId = strain.getId();
+        fields.createField(userId, strainId, new CustomField(strainId, "type", "promoter"));
+        fields.createField(userId, strainId, new CustomField(strainId, "strength", "weak"));
+
+        // search for strength:weak
+        List<CustomField> searchFields = new ArrayList<>();
+        searchFields.add(new CustomField("strength", "weak"));
+        List<PartData> results = fields.getPartsByFields(userId, searchFields);
+        Assert.assertEquals(1, results.size());
+
+        // create additional entry
+        Plasmid plasmid = TestEntryCreator.createTestPlasmid(account);
+        Assert.assertNotNull(plasmid);
+        long plasmidId = plasmid.getId();
+        fields.createField(userId, plasmidId, new CustomField(plasmidId, "type", "promoter"));
+        fields.createField(userId, plasmidId, new CustomField(plasmidId, "strength", "strong"));
+        searchFields.clear();
+        searchFields.add(new CustomField("strength", "strong"));
+        results = fields.getPartsByFields(userId, searchFields);
+        Assert.assertEquals(1, results.size());
+        Assert.assertEquals(plasmid.getId(), results.get(0).getId());
+
+        // search for type:promoter
+        searchFields.clear();
+        searchFields.add(new CustomField("type", "promoter"));
+        results = fields.getPartsByFields(userId, searchFields);
+        Assert.assertEquals(2, results.size());
+        Assert.assertEquals(strain.getId(), results.get(0).getId());
+
+        // test two
+        searchFields.clear();
+        searchFields.add(new CustomField(strainId, "type", "promoter"));
+        searchFields.add(new CustomField(strainId, "strength", "weak"));
+
+        results = fields.getPartsByFields(userId, searchFields);
+        Assert.assertNotNull(results);
+        Assert.assertTrue(results.size() == 1);
+        Assert.assertEquals(strain.getId(), results.get(0).getId());
     }
 }

@@ -719,6 +719,7 @@ angular.module('ice.entry.controller', [])
         uploader.onErrorItem = function (item, response, status, headers) {
             item.remove();
             $scope.serverError = true;
+            uploader.resetAll();
         };
 
         uploader.onCompleteAll = function () {
@@ -936,7 +937,8 @@ angular.module('ice.entry.controller', [])
     })
 
     .controller('EntryController', function ($scope, $stateParams, $cookieStore, $location, $modal, $rootScope,
-                                             FileUploader, Entry, Folders, EntryService, EntryContextUtil, Selection) {
+                                             FileUploader, Entry, Folders, EntryService, EntryContextUtil, Selection,
+                                             CustomField) {
         $scope.partIdEditMode = false;
         $scope.showSBOL = true;
         $scope.context = EntryContextUtil.getContext();
@@ -976,12 +978,18 @@ angular.module('ice.entry.controller', [])
                 controller: function ($scope, $modalInstance) {
                     $scope.toDelete = part;
                     $scope.processingDelete = undefined;
-                    $scope.delete = function () {
+                    $scope.errorDeleting = undefined;
+
+                    $scope.deleteSequence = function () {
                         $scope.processingDelete = true;
+                        $scope.errorDeleting = false;
+
                         entry.deleteSequence({partId: part.id}, function (result) {
                             $scope.processingDelete = false;
                             $modalInstance.close(part);
                         }, function (error) {
+                            $scope.processingDelete = false;
+                            $scope.errorDeleting = true;
                             console.error(error);
                         })
                     }
@@ -998,12 +1006,21 @@ angular.module('ice.entry.controller', [])
 
         var entry = Entry(sessionId);
 
-        $scope.addLink = function (part) {
+        $scope.addLink = function (part, role) {
 
             var modalInstance = $modal.open({
                 templateUrl: 'views/modal/add-link-modal.html',
                 controller: function ($scope, $http, $modalInstance, $cookieStore) {
                     $scope.mainEntry = part;
+                    $scope.role = role;
+                    $scope.loadingAddExistingData = undefined;
+
+                    if (role === 'PARENT') {
+                        $scope.links = part.parents;
+                    } else {
+                        $scope.links = part.linkedParts;
+                    }
+
                     var sessionId = $cookieStore.get("sessionId");
                     $scope.getEntriesByPartNumber = function (val) {
                         return $http.get('rest/parts/autocomplete/partid', {
@@ -1016,37 +1033,83 @@ angular.module('ice.entry.controller', [])
                         });
                     };
 
+                    var addLinkAtServer = function (item) {
+                        entry.addLink({partId: $scope.mainEntry.id, linkType: $scope.role}, item,
+                            function (result) {
+                                $scope.links.push(item);   // todo
+                                $scope.addExistingPartNumber = undefined;
+                                $scope.mainEntrySequence = undefined;
+                            }, function (error) {
+                                console.error(error);
+                                $scope.errorMessage = "Error linking this entry to " + item.partId;
+                            });
+                    };
+
                     $scope.addExistingPartLink = function ($item, $model, $label) {
                         $scope.errorMessage = undefined;
+
+                        // prevent selecting current entry
                         if ($item.id == $scope.mainEntry.id)
                             return;
 
+                        // or already added entry
                         var found = false;
-                        angular.forEach($scope.mainEntry.linkedParts, function (t) {
+                        angular.forEach($scope.links, function (t) {
                             if (t.id === $item.id) {
                                 found = true;
                             }
                         });
-
                         if (found)
                             return;
 
-                        entry.addLink({partId: $scope.mainEntry.id}, $item, function (result) {
-                            $scope.mainEntry.linkedParts.push($item);
-                            $scope.addExistingPartNumber = undefined;
-                        }, function (error) {
-                            console.error(error);
-                            $scope.errorMessage = "Error linking this entry to " + $item.partId;
-                        });
+                        $scope.selectedLink = $item;
+                        if ($scope.role == 'CHILD') {
+
+                            // if item being added as a child is of type part then
+                            if ($item.type.toLowerCase() == 'part') {
+                                // fetch item.id and check if it has a sequence
+                                entry.query({partId: $item.id}, function (result) {
+                                    if (!result.hasSequence) {
+                                        // then present the current entry sequence options to user
+                                        $scope.getEntrySequence($scope.mainEntry.id);
+                                    } else {
+                                        // just add the link
+                                        addLinkAtServer($item);
+                                    }
+                                }, function (error) {
+                                    $scope.errorMessage = "Error";
+                                })
+                            } else {
+                                // just add the link
+                                addLinkAtServer($item);
+                            }
+                        } else {
+                            // parent of main entry being added
+                            if ($scope.mainEntry.type.toLowerCase() == 'part') {
+                                // adding parent : check if main (current) entry has sequence
+                                if (!$scope.mainEntry.hasSequence) {
+                                    // retrieve sequence feature options for selected
+                                    $scope.getEntrySequence($scope.addExistingPartNumber.id);
+                                } else {
+                                    addLinkAtServer($item);
+                                }
+                            } else {
+                                addLinkAtServer($item);
+                            }
+                        }
                     };
 
                     $scope.removeExistingPartLink = function (link) {
-                        var i = $scope.mainEntry.linkedParts.indexOf(link);
+                        var i = $scope.links.indexOf(link);
                         if (i < 0)
                             return;
 
-                        entry.removeLink({partId: $scope.mainEntry.id, linkId: link.id}, function (result) {
-                            $scope.mainEntry.linkedParts.splice(i, 1);
+                        entry.removeLink({
+                            partId: $scope.mainEntry.id,
+                            linkId: link.id,
+                            linkType: $scope.role
+                        }, function (result) {
+                            $scope.links.splice(i, 1);
                         }, function (error) {
 
                         });
@@ -1054,7 +1117,46 @@ angular.module('ice.entry.controller', [])
 
                     $scope.close = function () {
                         $modalInstance.close();
-                    }
+                    };
+
+                    $scope.getEntrySequence = function (id) {
+                        $scope.mainEntrySequence = undefined;
+                        entry.sequence({partId: id}, function (result) {
+                            console.log(result);
+                            $scope.mainEntrySequence = result;
+                        }, function (error) {
+                            console.error(error);
+                        });
+                    };
+
+                    $scope.addSequenceToLinkAndLink = function (feature) {
+                        // update sequence information on entry
+                        // POST rest/parts/{id}/sequence featuredDNA sequence
+                        //console.log($scope.mainEntrySequence, feature, $scope.addExistingPartNumber);
+
+                        // todo : backend should handle this; quick fix for the milestone
+                        var start = feature.locations[0].genbankStart;
+                        var end = feature.locations[0].end;
+                        var sequence = $scope.mainEntrySequence.sequence.substring(start - 1, end);
+                        feature.locations[0].genbankStart = 1;
+                        feature.locations[0].end = sequence.length;
+
+                        var linkSequence = {
+                            identifier: $scope.addExistingPartNumber.partId,
+                            sequence: sequence,
+                            genbankStart: 0,
+                            end: sequence.length,
+                            features: [feature]
+                        };
+
+                        entry.addSequenceAsString({partId: $scope.selectedLink.id}, linkSequence,
+                            function (result) {
+                                console.log(result);
+                                addLinkAtServer($scope.addExistingPartNumber);
+                            }, function (error) {
+                                console.error(error);
+                            })
+                    };
                 },
                 backdrop: "static"
             });
@@ -1098,6 +1200,8 @@ angular.module('ice.entry.controller', [])
                 Selection.selectEntry(result);
 
                 $scope.entry = EntryService.convertToUIForm(result);
+                if ($scope.entry.canEdit)
+                    $scope.newParameter = {edit: false};
                 $scope.entryFields = EntryService.getFieldsForType(result.type.toLowerCase());
 
                 entry.statistics({partId: $stateParams.id}, function (stats) {
@@ -1172,6 +1276,37 @@ angular.module('ice.entry.controller', [])
             }
         };
 
+        $scope.createCopyOfEntry = function () {
+            $scope.entryCopy = angular.copy($scope.entry);
+            $scope.entryCopy.id = 0;
+            $scope.entryCopy.recordId = undefined;
+            $scope.entryCopy.name = $scope.entryCopy.name + " (copy)";
+            $scope.entryCopy.owner = undefined;
+            $scope.entryCopy.ownerEmail = undefined;
+
+            // convert arrays of objects to array strings
+            $scope.entryCopy.links = EntryService.toStringArray($scope.entryCopy.links);
+            $scope.entryCopy.selectionMarkers = EntryService.toStringArray($scope.entryCopy.selectionMarkers);
+
+            for (var i = 0; i < $scope.entryCopy.linkedParts.length; i += 1) {
+                $scope.entryCopy.linkedParts[i].links = EntryService.toStringArray($scope.entryCopy.linkedParts[i].links);
+                $scope.entryCopy.linkedParts[i].selectionMarkers = EntryService.toStringArray($scope.entryCopy.linkedParts[i].selectionMarkers);
+            }
+
+            // convert the part to a form the server can work with
+            $scope.entryCopy = EntryService.getTypeData($scope.entryCopy);
+            console.log($scope.entryCopy);
+
+            // create or update the part depending on whether there is a current part id
+            entry.create($scope.entryCopy, function (result) {
+                $scope.$emit("UpdateCollectionCounts");
+                $location.path('entry/' + result.id);   // todo : or /entry/edit/
+                $scope.showSBOL = false;
+            }, function (error) {
+                console.error(error);
+            });
+        };
+
         // check if a selection has been made
         var menuOption = $stateParams.option;
         if (menuOption === undefined) {
@@ -1230,6 +1365,20 @@ angular.module('ice.entry.controller', [])
                 field.updating = false;
                 field.errorUpdating = true;
             });
+        };
+
+        $scope.deleteCustomField = function (parameter) {
+            var index = $scope.entry.parameters.indexOf(parameter);
+            if (index >= 0) {
+                var currentParam = $scope.entry.parameters[index];
+                if (currentParam.id == parameter.id) {
+                    CustomField().deleteCustomField({id: parameter.id}, function (result) {
+                        $scope.entry.parameters.splice(index, 1);
+                    }, function (error) {
+                        console.error(error);
+                    })
+                }
+            }
         };
 
         $scope.nextEntryInContext = function () {
@@ -1299,5 +1448,26 @@ angular.module('ice.entry.controller', [])
         uploader.onErrorItem = function (item, response, status, headers) {
             $scope.serverError = true;
         };
+
+        // customer parameter add for entry view
+        $scope.addNewCustomField = function () {
+            $scope.newParameter.nameInvalid = $scope.newParameter.name == undefined || $scope.newParameter.name == '';
+            $scope.newParameter.valueInvalid = $scope.newParameter.value == undefined || $scope.newParameter.value == '';
+            if ($scope.newParameter.nameInvalid || $scope.newParameter.valueInvalid)
+                return;
+
+            $scope.newParameter.partId = $scope.entry.id;
+            CustomField().createNewCustomField(
+                $scope.newParameter,
+                function (result) {
+                    if (!result)
+                        return;
+
+                    $scope.entry.parameters.push(result);
+                    $scope.newParameter.edit = false;
+                }, function (error) {
+                    console.error(error);
+                })
+        }
     });
 

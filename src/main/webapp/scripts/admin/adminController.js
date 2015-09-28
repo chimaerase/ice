@@ -250,11 +250,15 @@ angular.module('ice.admin.controller', [])
 
         var samples = Samples($cookieStore.get("sessionId"));
         $scope.maxSize = 5;
-        $scope.params = {sort: 'requested', asc: false, currentPage: 1, status: 'ALL'};
+        $scope.params = {sort: 'requested', asc: false, currentPage: 1, status: undefined};
 
         $scope.requestSamples = function () {
             $scope.loadingPage = true;
-            samples.requests($scope.params, function (result) {
+            var params = angular.copy($scope.params);
+            if (params.status == 'ALL')
+                params.status = undefined;
+
+            samples.requests(params, function (result) {
                 $scope.sampleRequests = result;
                 $scope.loadingPage = false;
                 $scope.indexStart = ($scope.currentPage - 1) * 15;
@@ -311,26 +315,24 @@ angular.module('ice.admin.controller', [])
         $scope.maxSize = 5;
         $scope.currentPage = 1;
         $scope.newProfile = undefined;
+        $scope.userListParams = {sort: 'lastName', asc: true, currentPage: 1, status: undefined};
 
         var user = User($cookieStore.get("sessionId"));
         var getUsers = function () {
-            user.list(function (result) {
+            $scope.loadingPage = true;
+            user.list($scope.userListParams, function (result) {
                 $scope.userList = result;
+                $scope.loadingPage = false;
+            }, function (error) {
+                $scope.loadingPage = false;
             });
         };
 
         getUsers();
-
-        $scope.setUserListPage = function (pageNo) {
-            if (pageNo == undefined || isNaN(pageNo))
-                pageNo = 1;
-
+        $scope.userListPageChanged = function () {
             $scope.loadingPage = true;
-            var offset = (pageNo - 1) * 15;
-            user.list({offset: offset}, function (result) {
-                $scope.userList = result;
-                $scope.loadingPage = false;
-            });
+            $scope.userListParams.offset = ($scope.userListParams.currentPage - 1) * 15;
+            getUsers();
         };
 
         $scope.createProfile = function () {
@@ -340,5 +342,24 @@ angular.module('ice.admin.controller', [])
             }, function (error) {
 
             })
+        };
+
+        $scope.setUserAccountType = function (userItem, accountType) {
+            if (!accountType)
+                accountType = 'NORMAL';
+
+            var userCopy = angular.copy(userItem);
+            userCopy.accountType = accountType;
+
+            user.update({userId: userItem.id}, userCopy, function (result) {
+                userItem.accountType = result.accountType;
+                userItem.isAdmin = result.isAdmin;
+            }, function (error) {
+                console.log(error);
+            });
+        };
+
+        $scope.filterChanged = function () {
+            getUsers();
         }
     });
