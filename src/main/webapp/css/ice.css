@@ -1265,7 +1265,7 @@ th:hover i.sortable {
     color: brown;
 }
 
-.quality_desc.low_coverage {
+.quality_desc.low.coverage {
     background-color: lightgray;
     color: brown;
     border-color: brown;

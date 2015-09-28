@@ -31,7 +31,7 @@
 
     <div class="row pad_top">
         <h3 class="dark-orange">Sanger</h3>
-        <p style="display: none;">{{SEQS = (traceSequences | filter: { filename: '!.miseq.zip' })}}</p>
+        <p style="display: none;">{{SEQS = traceSequences}}</p>
     </div>
 
     <div class="row pad_top" ng-if="SEQS.length===0">
@@ -115,10 +115,10 @@
                     </td>
                     <td><p class="quality_score" style="text-align: center">{{ misequence.description | onlyDigits }}</p></td>
                     <td><span class="quality_desc + {{misequence.description}}"></span><span>{{ "  " + misequence.description | onlyAlpha }}</span></td>
-                    <td style="font-size:14px">
+<!--                     <td style="font-size:14px">
                         <i stop-event="click" ng-if="entry.canEdit" class="fa fa-trash-o delete_icon pull-right"
                             ng-click="setConfirmDelete($index, true)"></i><br>
-                    </td>
+                    </td> -->
                 </tr>
                 </tbody>
             </table>

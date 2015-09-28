@@ -66,7 +66,7 @@ iceFilters.filter('fileTruncate', function () {
 
 iceFilters.filter('onlyDigits', function() {
     return function (comment) {
-        return comment.replace(/[^\d]/g, '');
+        return comment.replace(/[^\d\.]/g, '');
     }; 
 });
 
