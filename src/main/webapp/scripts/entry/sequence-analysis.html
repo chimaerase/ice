@@ -31,16 +31,15 @@
 
     <div class="row pad_top">
         <h3 class="dark-orange">Sanger</h3>
-        <p style="display: none;">{{SEQS = traceSequences}}</p>
     </div>
 
-    <div class="row pad_top" ng-if="SEQS.length===0">
+    <div class="row pad_top" ng-if="traceSequences.length===0">
         <div class="col-md-12">
             <i class="text-muted">No trace sequences available</i>
         </div>
     </div>
 
-    <div class="row pad_top" ng-if="SEQS.length">
+    <div class="row pad_top" ng-if="traceSequences.length">
         <div class="col-md-12">
             <table cellspacing="0" class="table table-condensed table-hover font-95em">
                 <thead>
@@ -53,7 +52,7 @@
                 </tr>
                 </thead>
                 <tbody>
-                <tr ng-repeat="traceSequence in SEQS">
+                <tr ng-repeat="traceSequence in traceSequences">
                     <td style="opacity:0.2; text-shadow:0 1px 0 #fff;" width="30px">
                         <b class="no_wrap">{{$index+1}}</b>
                     </td>
@@ -73,7 +72,7 @@
         </div>
     </div>
 
-    <div class="row pad_top" ng-if="entry.hasSequence&&traceSequences.length">
+    <div class="row pad_top" ng-if="entry.hasSequence&&shotgunSequences.length">
         <div class="col-md-12" style="height: 600px">
             <ice-sequence-checker entryId="{{entry.id}}"></ice-sequence-checker>
         </div>
@@ -81,40 +80,45 @@
 </div>
 
     <!-- MiSeq uploads -->
-<div ng-controller="EntryAttachmentController">
+<div ng-controller="ShotgunSequenceController">
     <div class="row pad_top">
-        <h3 class="dark-orange">MiSeq</h3>
-        <p style="display: none;">{{MISEQS = (attachments | filter: { filename: '.miseq.zip' })}}</p>
+        <h3 class="dark-orange">Shotgun</h3>
+        <!-- <p style="display: none;">{{MISEQS = (attachments | filter: { filename: '.miseq.zip' })}}</p> -->
     </div>
 
-    <div class="row pad_top" ng-if="MISEQS.length===0">
+    <div class="row pad_top" ng-if="shotgunSequences.length===0">
         <div class="col-md-12">
-            <i class="text-muted">No MiSeq entries available</i>
+            <i class="text-muted">No shotgun entries available</i>
         </div>
     </div>
 
-    <div class="row pad_top" ng-if="MISEQS.length > 0">
+    <div class="row pad_top" ng-if="shotgunSequences.length > 0">
         <div class="col-md-12">
             <table cellspacing="0" class="table table-condensed table-hover font-95em">
                 <thead>
                 <tr>
                     <td></td>
-                    <td><b>MiSeq Sequence Files</b></td>
+                    <td><b>Shotgun Sequence Files</b></td>
                     <td style="text-align: center"><b>Quality Score</b></td>
                     <td><b>Quality Description</b></td>
+                    <td><b>Uploaded By</b></td>
+                    <td><b>On</b></td>
                     <td>&nbsp;</td>
                 </tr>
                 </thead>
                 <tbody>
-                <tr ng-repeat="misequence in MISEQS">
+                <tr ng-repeat="shotgun in shotgunSequences">
                     <td style="opacity:0.2; text-shadow:0 1px 0 #fff;" width="30px">
                         <b class="no_wrap">{{$index+1}}</b>
                     </td>
                     <td><a class="cursor_pointer"
-                           ng-click="downloadAttachment(misequence)">{{misequence.filename}}</a>
+                           ng-click="downloadAttachment(shotgun)">{{shotgun.filename}}</a>
                     </td>
-                    <td><p class="quality_score" style="text-align: center">{{ misequence.description | onlyDigits }}</p></td>
-                    <td><span class="quality_desc + {{misequence.description}}"></span><span>{{ "  " + misequence.description | onlyAlpha }}</span></td>
+                    <td><p class="quality_score" style="text-align: center">{{ shotgun.score }}</p></td>
+                    <td><span class="quality_desc + {{ shotgun.call }}"></span><span>{{ shotgun.call }}</span></td>
+                    <td><a ng-href="profile/{{ shotgun.depositor.id }}">{{shotgun.depositor.firstName}}
+                        {{ shotgun.depositor.lastName }}</a></td>
+                    <td>{{ shotgun.created | date:'MMM d, y, h:mm a'}}</td>
 <!--                     <td style="font-size:14px">
                         <i stop-event="click" ng-if="entry.canEdit" class="fa fa-trash-o delete_icon pull-right"
                             ng-click="setConfirmDelete($index, true)"></i><br>

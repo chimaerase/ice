@@ -362,6 +362,14 @@ iceServices.factory('Entry', function ($resource) {
                 headers:{'X-ICE-Authentication-SessionId':sessionId}
             },
 
+            shotgunSequences:{
+                method:'GET',
+                responseType:'json',
+                isArray:true,
+                url:'rest/parts/:partId/shotgunsequences',
+                headers:{'X-ICE-Authentication-SessionId':sessionId}                
+            },
+
             history:{
                 method:'GET',
                 responseType:'json',
@@ -389,6 +397,8 @@ iceServices.factory('Entry', function ($resource) {
                 url:'rest/parts/:partId/traces',
                 headers:{'X-ICE-Authentication-SessionId':sessionId}
             },
+
+            // will add shotgun delete and add functionality here later {{}}
 
             sequence:{
                 method:'GET',

@@ -129,8 +129,6 @@ angular.module('ice.entry.controller', [])
         var entryId = $stateParams.id;
         var sid = $cookieStore.get("sessionId");
         var entry = Entry(sid);
-        // angular filter; technically a constant
-        // var MISEQS = "traceSequences | filter: { filename: '.miseq.zip' }";
         $scope.traceUploadError = undefined;
 
         entry.traceSequences({
@@ -203,6 +201,84 @@ angular.module('ice.entry.controller', [])
 
         $scope.downloadTraceFile = function (trace) {
             $window.open("rest/file/trace/" + trace.fileId + "?sid=" + $cookieStore.get("sessionId"), "_self");
+        };
+    })
+    .controller('ShotgunSequenceController', function ($scope, $window, $cookieStore, $stateParams, FileUploader, Entry) {
+        var entryId = $stateParams.id;
+        var sid = $cookieStore.get("sessionId");
+        var entry = Entry(sid);
+        $scope.shotgunUploadError = undefined;
+
+        entry.shotgunSequences({
+            partId: entryId
+        }, function (result) {
+            $scope.shotgunSequences = result;
+        });
+
+        $scope.shotgunSequenceUploader = new FileUploader({
+            scope: $scope, // to automatically update the html. Default: $rootScope
+            url: "rest/parts/" + entryId + "/shotgunsequences",
+            method: 'POST',
+            removeAfterUpload: true,
+            headers: {
+                "X-ICE-Authentication-SessionId": sid
+            },
+            autoUpload: true,
+            queueLimit: 1, // can only upload 1 file
+            formData: [
+                {
+                    entryId: entryId
+                }
+            ]
+        });
+
+        $scope.shotgunSequenceUploader.onSuccessItem = function (item, response, status, headers) {
+            if (status != "200") {
+                $scope.shotgunUploadError = true;
+                return;
+            }
+
+            entry.shotgunSequences({
+                partId: entryId
+            }, function (result) {
+                $scope.shotgunSequences = result;
+                $scope.showUploadOptions = false;
+                $scope.shotgunUploadError = false;
+            });
+        };
+
+        $scope.shotgunSequenceUploader.onErrorItem = function (item, response, status, headers) {
+            $scope.shotgunUploadError = true;
+        };
+
+        // $scope.deleteTraceSequenceFile = function (fileId) {
+        //     var foundTrace;
+        //     var foundIndex;
+
+        //     for (var i = 0; i < $scope.traceSequences.length; i++) {
+        //         var trace = $scope.traceSequences[i];
+        //         if (trace.fileId === fileId && trace.fileId != undefined) {
+        //             foundTrace = trace;
+        //             foundIndex = i;
+        //             break;
+        //         }
+        //     }
+
+        //     if (foundTrace != undefined) {
+        //         entry.deleteTraceSequence({
+        //             partId: entryId,
+        //             traceId: foundTrace.id
+        //         }, function (result) {
+        //             $scope.traceSequences.splice(foundIndex, 1);
+        //             $scope.entryStatistics.traceSequenceCount = $scope.traceSequences.length;
+        //         }, function (error) {
+        //             console.log(error);
+        //         });
+        //     }
+        // };
+
+        $scope.downloadShotgunFile = function (shotgun) {
+            $window.open("rest/file/shotgunsequence/" + shotgun.fileId + "?sid=" + $cookieStore.get("sessionId"), "_self");
         };
     })
     .controller('EntryExperimentController', function ($scope, $cookieStore, $stateParams, Entry) {
